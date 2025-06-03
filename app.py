@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.title("Fuzzy Delphi TFN Calculator (Spreadsheet Sample)")
+st.title("Fuzzy Delphi TFN Calculator")
 
 st.markdown("""
 **Instructions:**
-1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4).
+1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers.
 2. The TFN mapping and calculation steps follow the spreadsheet sample in your reference.
 """)
 
