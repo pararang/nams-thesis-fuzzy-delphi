@@ -92,6 +92,7 @@ if uploaded_file:
 
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
             tfn_table.to_excel(writer, sheet_name=indikator)
+            
         st.download_button(
             label="Download Excel", 
             data=buffer.getvalue(), 
