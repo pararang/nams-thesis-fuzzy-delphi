@@ -89,15 +89,25 @@ if uploaded_file:
         # )
 
         buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            tfn_table.to_excel(writer, sheet_name=indikator, index=False)
-
+        writer = pd.ExcelWriter(buffer, engine='xlsxwriter')
+        
         st.download_button(
-            label="Download Excel", 
-            data=buffer, #buffer.getvalue(), 
-            file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
+            label="Download as Excel",
+            data=tfn_table.to_excel(writer, sheet_name=indikator, index=False),
+            file_name= f"fuzzy_delp_tfn_{timestamp}_{indikator}.csv",
             mime="application/vnd.ms-excel"
         )
+
+        # buffer = BytesIO()
+        # with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        #     tfn_table.to_excel(writer, sheet_name=indikator, index=False)
+
+        # st.download_button(
+        #     label="Download Excel", 
+        #     data=buffer, #buffer.getvalue(), 
+        #     file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
+        #     mime="application/vnd.ms-excel"
+        # )
 
 
         # Show mean TFN and defuzzified value
