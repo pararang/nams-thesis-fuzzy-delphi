@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import datetime
+from io import BytesIO
+
 
 st.title("Fuzzy Delphi TFN Calculator")
 
@@ -16,7 +18,7 @@ st.markdown("""
 3. The application will calculate the mean TFN for each indicator, consensus distances, and defuzzified values.
 4. Defuzzified values are calculated using the formula:
 **A = (l + 2m + 2u) / 4**
-5. Results will be displayed and can be downloaded as a CSV file..
+5. Results will be displayed and can be downloaded as a CSV file.
 """)
 
 # Score to TFN mapping as in your spreadsheet sample
@@ -60,6 +62,8 @@ if uploaded_file:
 
     st.write("## Results and Calculation Steps")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    buffer = BytesIO()
+
     for indikator in indicator_names:
         st.write(f"---\n### Indicator: {indikator}")
         scores = df[indikator].tolist()
@@ -77,15 +81,22 @@ if uploaded_file:
             "Consensus d": dists
         })
         st.write("#### TFN Conversion & Consensus Distance")
-        # customize filename for downloaded csv: timestamp_indicator.csv
-        file_name = f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx"
         st.dataframe(tfn_table)
+        # st.download_button(
+        #     label="Download as CSV",
+        #     data=tfn_table.to_csv(index=False),
+        #     file_name= f"fuzzy_delp_tfn_{timestamp}_{indikator}.csv",
+        #     mime="text/csv"
+        # )
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            tfn_table.to_excel(writer, sheet_name=indikator)
         st.download_button(
-            label="Download as Excel",
-            data=tfn_table.to_excel(), #to_csv(index=False),
-            file_name= file_name,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            label="Download Excel", 
+            data=buffer.getvalue(), 
+            file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
+            mime="application/vnd.ms-excel"
         )
+
 
         # Show mean TFN and defuzzified value
         st.write(f"**Mean TFN (L, M, U):** {tuple(round(x,4) for x in mean_tfn)}")
