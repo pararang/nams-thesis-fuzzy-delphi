@@ -60,6 +60,7 @@ if uploaded_file:
     respondents = df.iloc[:, 0].tolist()
 
     results = []
+    indicator_sheets = {}
 
     st.write("## Results and Calculation Steps")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -109,12 +110,14 @@ if uploaded_file:
             mime="application/vnd.ms-excel"
         )
 
-        st.download_button(
-            label="Download Excel2", 
-            data=buffer.getvalue(), 
-            file_name=f"fuzzy_delp_tfn2_{timestamp}_{indikator}.xlsx", 
-            mime="application/vnd.ms-excel"
-        )
+        indicator_sheets[indikator] = tfn_table
+
+        # st.download_button(
+        #     label="Download Excel", 
+        #     data=buffer.getvalue(), 
+        #     file_name=f"fuzzy_delp_tfn2_{timestamp}_{indikator}.xlsx", 
+        #     mime="application/vnd.ms-excel"
+        # )
 
 
         # Show mean TFN and defuzzified value
@@ -129,7 +132,23 @@ if uploaded_file:
             "Defuzzified": crisp
         })
 
+
     # Show summary table
+    st.write("---")
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        for indikator, table in indicator_sheets.items():
+            table.to_excel(writer, sheet_name=indikator, index=False)
+        
+        writer.save()
+
+        st.download_button(
+            label="Download All Calculation in Excel", 
+            data=buffer, #buffer.getvalue(), 
+            file_name=f"fuzzy_delp_tfn_calculation_{timestamp}.xlsx", 
+            mime="application/vnd.ms-excel"
+        )
+
     st.write("---")
     st.write("## Summary Table")
     summary_df = pd.DataFrame(results)
@@ -137,6 +156,6 @@ if uploaded_file:
     st.download_button(
         label="Download Summary as CSV",
         data=summary_df.to_csv(index=False),
-        file_name=f"fuzzy_delphi_tfn_summary_{timestamp}.csv",
+        file_name=f"fuzzy_delp_tfn_summary_{timestamp}.csv",
         mime="text/csv"
     )
