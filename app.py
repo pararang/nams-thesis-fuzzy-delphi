@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import datetime
 
 st.title("Fuzzy Delphi TFN Calculator")
 
@@ -19,7 +20,7 @@ st.markdown("""
 """)
 
 # Score to TFN mapping as in your spreadsheet sample
-def skor_to_tfn(skor):
+def scor_to_tfn(skor):
     mapping = {
         1: (0,    0,    0.25),
         2: (0,    0.25, 0.5 ),
@@ -29,7 +30,7 @@ def skor_to_tfn(skor):
     return mapping[int(skor)]
 
 def indicator_tfns(scores):
-    tfns = [skor_to_tfn(s) for s in scores]
+    tfns = [scor_to_tfn(s) for s in scores]
     l = np.mean([t[0] for t in tfns])
     m = np.mean([t[1] for t in tfns])
     u = np.mean([t[2] for t in tfns])
@@ -94,9 +95,10 @@ if uploaded_file:
     st.write("## Summary Table")
     summary_df = pd.DataFrame(results)
     st.dataframe(summary_df)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.download_button(
         label="Download Summary as CSV",
         data=summary_df.to_csv(index=False),
-        file_name="fuzzy_delphi_summary.csv",
+        file_name=f"fuzzy_delphi_tfn_summary_{timestamp}.csv",
         mime="text/csv"
     )
