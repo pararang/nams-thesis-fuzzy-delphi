@@ -59,6 +59,7 @@ if uploaded_file:
     results = []
 
     st.write("## Results and Calculation Steps")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     for indikator in indicator_names:
         st.write(f"---\n### Indicator: {indikator}")
         scores = df[indikator].tolist()
@@ -76,7 +77,15 @@ if uploaded_file:
             "Consensus d": dists
         })
         st.write("#### TFN Conversion & Consensus Distance")
+        # customize filename for downloaded csv: timestamp_indicator.csv
+        file_name = f"fuzzy_delphi_tfn_{indikator}_{timestamp}.csv"
         st.dataframe(tfn_table)
+        st.download_button(
+            label="Download as CSV",
+            data=tfn_table.to_csv(index=False),
+            file_name= file_name,
+            mime="text/csv"
+        )
 
         # Show mean TFN and defuzzified value
         st.write(f"**Mean TFN (L, M, U):** {tuple(round(x,4) for x in mean_tfn)}")
@@ -95,7 +104,6 @@ if uploaded_file:
     st.write("## Summary Table")
     summary_df = pd.DataFrame(results)
     st.dataframe(summary_df)
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.download_button(
         label="Download Summary as CSV",
         data=summary_df.to_csv(index=False),
