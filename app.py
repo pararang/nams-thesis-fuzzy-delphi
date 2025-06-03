@@ -35,7 +35,7 @@ def consensus_distances(tfns, mean_tfn):
     return dists
 
 def defuzzify_tfn(mean_tfn):
-    return (mean_tfn[0] + 2 * mean_tfn[1] + mean_tfn[2]) / 4
+    return (mean_tfn[0] + (2 * mean_tfn[1]) + (mean_tfn[2] * 2)) / 4
 
 uploaded_file = st.file_uploader("Upload your input CSV file", type="csv")
 
