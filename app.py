@@ -60,7 +60,7 @@ if uploaded_file:
     respondents = df.iloc[:, 0].tolist()
 
     results = []
-    indicator_sheets = {}
+    calculation_sheets = {}
 
     st.write("## Results and Calculation Steps")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -82,6 +82,7 @@ if uploaded_file:
         })
         st.write("#### TFN Conversion & Consensus Distance")
         st.dataframe(tfn_table)
+        calculation_sheets[indikator] = tfn_table
         # st.download_button(
         #     label="Download as CSV",
         #     data=tfn_table.to_csv(index=False),
@@ -99,18 +100,17 @@ if uploaded_file:
         #     mime="application/vnd.ms-excel"
         # )
 
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            tfn_table.to_excel(writer, sheet_name=indikator, index=False)
+        # buffer = BytesIO()
+        # with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        #     tfn_table.to_excel(writer, sheet_name=indikator, index=False)
 
-        st.download_button(
-            label="Download Excel", 
-            data=buffer, #buffer.getvalue(), 
-            file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
-            mime="application/vnd.ms-excel"
-        )
+        # st.download_button(
+        #     label="Download Excel", 
+        #     data=buffer, #buffer.getvalue(), 
+        #     file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
+        #     mime="application/vnd.ms-excel"
+        # )
 
-        indicator_sheets[indikator] = tfn_table
 
         # st.download_button(
         #     label="Download Excel", 
@@ -137,7 +137,7 @@ if uploaded_file:
     st.write("---")
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        for indikator, table in indicator_sheets.items():
+        for indikator, table in calculation_sheets.items():
             table.to_excel(writer, sheet_name=indikator, index=False)
         
         writer.close()
