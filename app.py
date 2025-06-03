@@ -94,7 +94,7 @@ if uploaded_file:
         st.download_button(
             label="Download as Excel",
             data=tfn_table.to_excel(writer, sheet_name=indikator, index=False),
-            file_name= f"fuzzy_delp_tfn_{timestamp}_{indikator}.csv",
+            file_name= f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx",
             mime="application/vnd.ms-excel"
         )
 
