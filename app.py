@@ -140,7 +140,7 @@ if uploaded_file:
         for indikator, table in indicator_sheets.items():
             table.to_excel(writer, sheet_name=indikator, index=False)
         
-        writer.save()
+        writer.close()
 
         st.download_button(
             label="Download All Calculation in Excel", 
