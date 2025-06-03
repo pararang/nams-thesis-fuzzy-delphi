@@ -82,7 +82,7 @@ if uploaded_file:
         st.dataframe(tfn_table)
         st.download_button(
             label="Download as Excel",
-            data=tfn_table.to_csv(index=False),
+            data=tfn_table.to_excel(), #to_csv(index=False),
             file_name= file_name,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
