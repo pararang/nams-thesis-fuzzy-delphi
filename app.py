@@ -7,7 +7,15 @@ st.title("Fuzzy Delphi TFN Calculator")
 st.markdown("""
 **Instructions:**
 1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers.
-2. The TFN mapping and calculation steps follow the spreadsheet sample in your reference.
+2. Skor tfn is mapped as follows:
+- 1 → (0, 0, 0.25)
+- 2 → (0, 0.25, 0.5)
+- 3 → (0.25, 0.5, 0.75)
+- 4 → (0.5, 0.75, 1.0)
+3. The application will calculate the mean TFN for each indicator, consensus distances, and defuzzified values.
+4. Defuzzified values are calculated using the formula:
+**A = (l + 2m + 2u) / 4**
+5. Results will be displayed and can be downloaded as a CSV file.
 """)
 
 # Score to TFN mapping as in your spreadsheet sample
