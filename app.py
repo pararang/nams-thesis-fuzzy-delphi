@@ -78,13 +78,13 @@ if uploaded_file:
         })
         st.write("#### TFN Conversion & Consensus Distance")
         # customize filename for downloaded csv: timestamp_indicator.csv
-        file_name = f"fuzzy_delphi_tfn_{indikator}_{timestamp}.csv"
+        file_name = f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx"
         st.dataframe(tfn_table)
         st.download_button(
-            label="Download as CSV",
+            label="Download as Excel",
             data=tfn_table.to_csv(index=False),
             file_name= file_name,
-            mime="text/csv"
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
         # Show mean TFN and defuzzified value
