@@ -63,8 +63,6 @@ if uploaded_file:
 
     st.write("## Results and Calculation Steps")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    buffer = BytesIO()
-
     for indikator in indicator_names:
         st.write(f"---\n### Indicator: {indikator}")
         scores = df[indikator].tolist()
@@ -90,12 +88,13 @@ if uploaded_file:
         #     mime="text/csv"
         # )
 
+        buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            tfn_table.to_excel(writer, sheet_name=indikator)
-            
+            tfn_table.to_excel(writer, sheet_name=indikator, index=False)
+
         st.download_button(
             label="Download Excel", 
-            data=buffer.getvalue(), 
+            data=buffer, #buffer.getvalue(), 
             file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
             mime="application/vnd.ms-excel"
         )
