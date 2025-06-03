@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import datetime
 from io import BytesIO
-import XlsxWriter as xlsxwriter
 
 
 
@@ -91,24 +90,12 @@ if uploaded_file:
         #     mime="text/csv"
         # )
 
-        # with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        #     tfn_table.to_excel(writer, sheet_name=indikator)
-        # st.download_button(
-        #     label="Download Excel", 
-        #     data=buffer.getvalue(), 
-        #     file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
-        #     mime="application/vnd.ms-excel"
-        # )
-
-        workbook = xlsxwriter.Workbook(buffer, {'in_memory': True})
-        worksheet = workbook.add_worksheet()
-        worksheet.write('A1', 'Hello')
-        workbook.close()
-
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            tfn_table.to_excel(writer, sheet_name=indikator)
         st.download_button(
-            label="Download Excel",
-            data=buffer.getvalue(),
-            file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx",
+            label="Download Excel", 
+            data=buffer.getvalue(), 
+            file_name=f"fuzzy_delp_tfn_{timestamp}_{indikator}.xlsx", 
             mime="application/vnd.ms-excel"
         )
 
