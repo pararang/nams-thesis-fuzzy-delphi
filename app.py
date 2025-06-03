@@ -109,6 +109,13 @@ if uploaded_file:
             mime="application/vnd.ms-excel"
         )
 
+        st.download_button(
+            label="Download Excel2", 
+            data=buffer.getvalue(), 
+            file_name=f"fuzzy_delp_tfn2_{timestamp}_{indikator}.xlsx", 
+            mime="application/vnd.ms-excel"
+        )
+
 
         # Show mean TFN and defuzzified value
         st.write(f"**Mean TFN (L, M, U):** {tuple(round(x,4) for x in mean_tfn)}")
