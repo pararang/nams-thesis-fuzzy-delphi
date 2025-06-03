@@ -16,7 +16,7 @@ st.markdown("""
 3. The application will calculate the mean TFN for each indicator, consensus distances, and defuzzified values.
 4. Defuzzified values are calculated using the formula:
 **A = (l + 2m + 2u) / 4**
-5. Results will be displayed and can be downloaded as a CSV file.
+5. Results will be displayed and can be downloaded as a CSV file..
 """)
 
 # Score to TFN mapping as in your spreadsheet sample
