@@ -97,6 +97,11 @@ The tool generates:
 4. Defuzzified values for each indicator
 5. Summary table with all results
 
+## TODO
+
+- Enable dynamic TFN mapping value via UI
+- Enable dynamic formula for defuzzified values calculation
+
 ## License
 
 MIT
