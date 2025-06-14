@@ -4,9 +4,9 @@ A specialized data processing tool designed to help with Fuzzy Delphi Method cal
 
 ## Overview
 
-This project was specifically created to help my wife process data for her thesis research abouut the implementation of Sustainability Principles to support the performance of Small and Medium Enterprises in Makassar. Her research utilizes the Fuzzy Delphi Method with Triangular Fuzzy Numbers (TFN) to analyze survey data from SMEs in Makassar regarding sustainability practices. The tool provides both a user-friendly web interface and a command-line script for processing this specialized survey data.
+This project was specifically designed to assist my ❤️ wife in processing data for her thesis research on the implementation of Sustainability Principles to support the performance of Small and Medium Enterprises in Makassar. Her research utilizes the Fuzzy Delphi Method (FDM) with Triangular Fuzzy Numbers (TFN) for analyzing survey data on SME performance indicators. This tool streamlines her analysis, offering both a convenient web interface and a robust command-line script.
 
-For correspondence regarding the detail of the thesis topic and its methodology/approach, please contact her at nurastrimufthias@gmail.com.
+For deeper insights into the thesis's methodologies or subject matter, please reach out to nurastrimufthias@gmail.com.
 
 ## Features
 
@@ -45,7 +45,7 @@ The UI version provides a graphical interface for interactive data processing us
 streamlit run app.py
 ```
 
-This will launch the application in your default web browser where you can:
+This will launch the application in your default web browser, where you can:
 
 1. Upload a CSV file with survey data
 2. View the raw data and TFN conversion results
