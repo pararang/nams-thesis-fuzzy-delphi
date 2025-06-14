@@ -31,14 +31,10 @@ def scor_to_tfn(skor):
         4: (0.5,  0.75, 1.0 )
     }
 
-    try:
-        skor_int = int(skor)
-        if skor_int not in mapping:
-            raise ValueError(f"Score {skor} is out of bounds (must be 1-4)")
-        return mapping[skor_int]
-    except Exception as e:
-        st.warning(f"Invalid score '{skor}': {e}")
-        return (np.nan, np.nan, np.nan)
+    skor_int = int(skor)
+    if skor_int not in mapping:
+        raise ValueError(f"Score {skor} is out of bounds (must be 1-4)")
+    return mapping[skor_int]
 
 def indicator_tfns(scores):
     tfns = [scor_to_tfn(s) for s in scores]
