@@ -34,6 +34,7 @@ pip install -r requirements.txt
 - pandas
 - numpy
 - streamlit (for UI version)
+- xlsxwriter (for Excel export)
 
 ## Usage
 
@@ -51,6 +52,23 @@ This will launch the application in your default web browser, where you can:
 2. View the raw data and TFN conversion results
 3. See detailed calculations for each indicator
 4. Download calculation details and summary results
+
+### Docker Development
+
+For a containerized development environment:
+
+```bash
+# Build and run with live code reloading
+make dev
+
+# Other available commands
+make build    # Build the Docker image
+make run      # Run the container (production mode)
+make stop     # Stop the running container
+make clean    # Remove the Docker image
+```
+
+The application will be available at http://localhost:8501 with live code reloading enabled.
 
 ### Command-Line Script Version
 
