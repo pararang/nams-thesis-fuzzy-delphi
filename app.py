@@ -10,7 +10,7 @@ st.title("Fuzzy Delphi TFN Calculator")
 
 st.markdown("""
 **Instructions:**
-1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers. See the example here: https://github.com/pararang/nams-thesis/blob/main/sample_input.csv
+1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers. See the example [here](https://github.com/pararang/nams-thesis/blob/main/sample_input.csv).
 2. Skor tfn is mapped as follows:
 - 1 → (0, 0, 0.25)
 - 2 → (0, 0.25, 0.5)
@@ -57,73 +57,83 @@ uploaded_file = st.file_uploader("Upload your input CSV file", type="csv")
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    st.write("### Raw Data")
+    st.write("## Raw Data")
     st.dataframe(df)
 
-    try:
-        indicator_names = df.columns[1:]
-        respondents = df.iloc[:, 0].tolist()
+    indicator_names = df.columns[1:]
+    respondents = df.iloc[:, 0].tolist()
 
-        results = []
-        calculation_sheets = {}
+    results = []
+    calculation_sheets = {}
 
-        st.write("## Results and Calculation Steps")
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        for indikator in indicator_names:
-            st.write(f"---\n### Indicator: {indikator}")
-            scores = df[indikator].tolist()
+    st.write("## TFN Conversion & Consensus Distances Calculation per Indicator")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    err_bags = []
+    for indikator in indicator_names:
+        scores = df[indikator].tolist()
+        try:
             tfns, mean_tfn = indicator_tfns(scores)
             dists = consensus_distances(tfns, mean_tfn)
             crisp = defuzzify_tfn(mean_tfn)
+        except Exception as e:
+            err_bags.append(f"Error processing indicator '{indikator}': {e}")
+            continue
+        
+        # always suudzon, if there is an error, assuming there is other error on other indicators
+        # so, collect all errors and show them at the end then user can fix them all at once istead of one by one each time user find error
+        if err_bags:
+            continue
 
-            # Show TFN conversion for each respondent
-            tfn_table = pd.DataFrame({
-                "Respondent": respondents,
-                "Score": scores,
-                "L": [t[0] for t in tfns],
-                "M": [t[1] for t in tfns],
-                "U": [t[2] for t in tfns],
-                "Consensus d": dists
-            })
-            st.write("#### TFN Conversion & Consensus Distance")
-            st.dataframe(tfn_table)
-            calculation_sheets[indikator] = tfn_table
+        st.write(f"---\n### {indikator}")
+        # Show TFN conversion for each respondent
+        tfn_table = pd.DataFrame({
+            "Respondent": respondents,
+            "Score": scores,
+            "L": [t[0] for t in tfns],
+            "M": [t[1] for t in tfns],
+            "U": [t[2] for t in tfns],
+            "Consensus d": dists
+        })
+        st.dataframe(tfn_table)
+        calculation_sheets[indikator] = tfn_table
 
-            # Show mean TFN and defuzzified value
-            st.write(f"**Mean TFN (L, M, U):** {tuple(round(x,4) for x in mean_tfn)}")
-            st.write(f"**Defuzzified Value:** {crisp:.4f}")
+        # Show mean TFN and defuzzified value
+        st.write(f"**Mean TFN (L, M, U):** {tuple(round(x,4) for x in mean_tfn)}")
+        st.write(f"**Defuzzified Value:** {crisp:.4f}")
 
-            results.append({
-                "Indicator": indikator,
-                "Mean_TFN_L": mean_tfn[0],
-                "Mean_TFN_M": mean_tfn[1],
-                "Mean_TFN_U": mean_tfn[2],
-                "Defuzzified": crisp
-            })
+        results.append({
+            "Indicator": indikator,
+            "Mean_TFN_L": mean_tfn[0],
+            "Mean_TFN_M": mean_tfn[1],
+            "Mean_TFN_U": mean_tfn[2],
+            "Defuzzified": crisp
+        })
 
-        # Show summary table
+    if err_bags:
+        st.write("### Errors")
+        for err in err_bags:
+            st.error(err)
+    else:
         st.write("---")
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            for indikator, table in calculation_sheets.items():
-                table.to_excel(writer, sheet_name=indikator, index=False)
-            
-        st.download_button(
-            label="Download All Calculation in Excel", 
-            data=buffer, #buffer.getvalue(), 
-            file_name=f"fuzzy_delp_tfn_calculation_{timestamp}.xlsx", 
-            mime="application/vnd.ms-excel"
-        )
-
-        st.write("---")
-        st.write("## Summary Table")
+        st.write("## Summary")
         summary_df = pd.DataFrame(results)
         st.dataframe(summary_df)
+
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            summary_df.to_excel(writer, sheet_name='Summary', index=False)
+            for indikator, table in calculation_sheets.items():
+                table.to_excel(writer, sheet_name=indikator, index=False)
+        
+        st.write("---")
+            
         st.download_button(
-            label="Download Summary as CSV",
-            data=summary_df.to_csv(index=False),
-            file_name=f"fuzzy_delp_tfn_summary_{timestamp}.csv",
-            mime="text/csv"
+            label="Download Results in Single Excel File", 
+            data=buffer, #buffer.getvalue(), 
+            file_name=f"fuzzy_delp_tfn_calculation_{timestamp}.xlsx", 
+            mime="application/vnd.ms-excel",
+            # type="primary",
+            icon=":material/download:",
+            use_container_width=True,
         )
-    except Exception as e:
-        st.error(f"An error occurred during calculation: {e}")
+    
