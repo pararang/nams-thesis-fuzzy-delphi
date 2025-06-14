@@ -10,7 +10,7 @@ st.title("Fuzzy Delphi TFN Calculator")
 
 st.markdown("""
 **Instructions:**
-1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers.
+1. Upload a CSV file with the first column as respondent code or name, and the next columns as indicator scores (1-4). First row as table headers. See the example here: https://github.com/pararang/nams-thesis/blob/main/sample_input.csv
 2. Skor tfn is mapped as follows:
 - 1 → (0, 0, 0.25)
 - 2 → (0, 0.25, 0.5)
@@ -30,7 +30,15 @@ def scor_to_tfn(skor):
         3: (0.25, 0.5,  0.75),
         4: (0.5,  0.75, 1.0 )
     }
-    return mapping[int(skor)]
+    
+    try:
+        skor_int = int(skor)
+        if skor_int not in mapping:
+            raise ValueError(f"Score {skor} is out of bounds (must be 1-4)")
+        return mapping[skor_int]
+    except Exception as e:
+        st.warning(f"Invalid score '{skor}': {e}")
+        return (np.nan, np.nan, np.nan)
 
 def indicator_tfns(scores):
     tfns = [scor_to_tfn(s) for s in scores]
