@@ -47,7 +47,6 @@ def main():
     )
 
     fdmTab, dematelTab = st.tabs(["Fuzzy Delphi TFN", "Dematel Analysis"])
-
     with fdmTab:
         fdm_form()
     with dematelTab:
