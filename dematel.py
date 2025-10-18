@@ -153,21 +153,167 @@ def dematel_form():
                             mime="text/csv"
                         )
 
-                    # Add visualization using DEMATEL solver's drawCurve
-                    # st.subheader("DEMATEL Visualization")
-                    # try:
-                    #     fig = solver.drawCurve()
-                    #     st.pyplot(fig)
-                    # except Exception as e:
-                    #     st.warning(f"Could not generate visualization: {str(e)}")
+                    # Visualization section
+                    st.subheader("DEMATEL Visualizations")
+                    viz_col1, viz_col2 = st.columns(2)
+                    
+                    # Causal diagram (D+R vs D-R)
+                    with viz_col1:
+                        st.write("**Causal Diagram**")
+                        fig1, ax1 = plt.subplots(figsize=(8, 6))
+                        
+                        # Plot D+R vs D-R
+                        x = D_minus_R_rounded  # D-R (Net Influence)
+                        y = D_plus_R_rounded   # D+R (Prominence)
+                        
+                        scatter = ax1.scatter(x, y, alpha=0.7, s=100)
+                        
+                        # Add labels for each point
+                        for i, txt in enumerate(df.index):
+                            ax1.annotate(txt, (x[i], y[i]), fontsize=9, ha='right')
+                        
+                        ax1.set_xlabel('D-R (Net Influence)')
+                        ax1.set_ylabel('D+R (Prominence)')
+                        ax1.set_title('Causal Diagram: Influence vs Prominence')
+                        ax1.grid(True, linestyle='--', alpha=0.6)
+                        
+                        # Draw quadrant lines
+                        avg_x = np.mean(x) if len(x) > 0 else 0
+                        avg_y = np.mean(y) if len(y) > 0 else 0
+                        ax1.axhline(y=avg_y, color='r', linestyle='--', alpha=0.5, label='Avg Prominence')
+                        ax1.axvline(x=avg_x, color='r', linestyle='--', alpha=0.5, label='Avg Net Influence')
+                        
+                        ax1.legend()
+                        st.pyplot(fig1, clear_figure=False)
+                        plt.close(fig1)
+                    
+                    # Influence bars
+                    with viz_col2:
+                        st.write("**Influence vs Impact Analysis**")
+                        fig2, ax2 = plt.subplots(figsize=(8, 6))
+                        
+                        x_pos = np.arange(len(df.index))
+                        width = 0.35
+                        
+                        ax2.bar(x_pos - width/2, D_rounded, width, label='D (Total Influence)', alpha=0.8)
+                        ax2.bar(x_pos + width/2, R_rounded, width, label='R (Total Impact)', alpha=0.8)
+                        
+                        ax2.set_xlabel('Factors')
+                        ax2.set_ylabel('Values')
+                        ax2.set_title('Total Influence vs Total Impact')
+                        ax2.set_xticks(x_pos)
+                        ax2.set_xticklabels(df.index, rotation=45, ha='right')
+                        ax2.legend()
+                        ax2.grid(True, linestyle='--', alpha=0.6)
+                        
+                        st.pyplot(fig2, clear_figure=False)
+                        plt.close(fig2)
+                    
+                    # Net influence and prominence bars
+                    st.subheader("Factor Classification")
+                    viz_col3, viz_col4 = st.columns(2)
+                    
+                    with viz_col3:
+                        st.write("**Net Influence (D-R)**")
+                        fig3, ax3 = plt.subplots(figsize=(8, 6))
+                        
+                        colors = ['red' if val > 0 else 'blue' for val in D_minus_R_rounded]
+                        bars = ax3.bar(df.index, D_minus_R_rounded, color=colors, alpha=0.7)
+                        
+                        ax3.set_xlabel('Factors')
+                        ax3.set_ylabel('Net Influence (D-R)')
+                        ax3.set_title('Net Influence: Cause (Positive) vs Effect (Negative)')
+                        ax3.grid(True, linestyle='--', alpha=0.6)
+                        plt.xticks(rotation=45, ha='right')
+                        
+                        # Add horizontal line at y=0
+                        ax3.axhline(y=0, color='black', linewidth=0.8)
+                        
+                        st.pyplot(fig3, clear_figure=False)
+                        plt.close(fig3)
+                    
+                    with viz_col4:
+                        st.write("**Prominence (D+R)**")
+                        fig4, ax4 = plt.subplots(figsize=(8, 6))
+                        
+                        bars = ax4.bar(df.index, D_plus_R_rounded, color='green', alpha=0.7)
+                        
+                        ax4.set_xlabel('Factors')
+                        ax4.set_ylabel('Prominence (D+R)')
+                        ax4.set_title('Factor Prominence')
+                        ax4.grid(True, linestyle='--', alpha=0.6)
+                        plt.xticks(rotation=45, ha='right')
+                        
+                        st.pyplot(fig4, clear_figure=False)
+                        plt.close(fig4)
+                    
+                    # Matrix heatmap visualization
+                    st.subheader("Matrix Heatmaps")
+                    matrix_cols = st.columns(2)
+                    
+                    with matrix_cols[0]:
+                        st.write("**Normalized Matrix (T)**")
+                        fig5, ax5 = plt.subplots(figsize=(10, 8))
+                        im = ax5.imshow(T_rounded, cmap='viridis', aspect='auto', interpolation='nearest')
+                        ax5.set_xticks(range(len(df.columns)))
+                        ax5.set_yticks(range(len(df.index)))
+                        ax5.set_xticklabels(df.columns, rotation=45, ha='right')
+                        ax5.set_yticklabels(df.index)
+                        ax5.set_title("Normalized Matrix Heatmap")
+                        
+                        # Add colorbar
+                        cbar = plt.colorbar(im, ax=ax5)
+                        cbar.set_label('Value')
+                        
+                        # Add value annotations for smaller matrices
+                        if T_rounded.shape[0] <= 10 and T_rounded.shape[1] <= 10:
+                            for i in range(T_rounded.shape[0]):
+                                for j in range(T_rounded.shape[1]):
+                                    text = ax5.text(j, i, f"{T_rounded[i, j]:.2f}",
+                                                   ha="center", va="center", color="white", fontsize=8)
+                        
+                        st.pyplot(fig5, clear_figure=False)
+                        plt.close(fig5)
+                    
+                    with matrix_cols[1]:
+                        st.write("**Total Relation Matrix (T*)**")
+                        fig6, ax6 = plt.subplots(figsize=(10, 8))
+                        im = ax6.imshow(T_star_rounded, cmap='plasma', aspect='auto', interpolation='nearest')
+                        ax6.set_xticks(range(len(df.columns)))
+                        ax6.set_yticks(range(len(df.index)))
+                        ax6.set_xticklabels(df.columns, rotation=45, ha='right')
+                        ax6.set_yticklabels(df.index)
+                        ax6.set_title("Total Relation Matrix Heatmap")
+                        
+                        # Add colorbar
+                        cbar = plt.colorbar(im, ax=ax6)
+                        cbar.set_label('Value')
+                        
+                        # Add value annotations for smaller matrices
+                        if T_star_rounded.shape[0] <= 10 and T_star_rounded.shape[1] <= 10:
+                            for i in range(T_star_rounded.shape[0]):
+                                for j in range(T_star_rounded.shape[1]):
+                                    text = ax6.text(j, i, f"{T_star_rounded[i, j]:.2f}",
+                                                   ha="center", va="center", color="white", fontsize=8)
+                        
+                        st.pyplot(fig6, clear_figure=False)
+                        plt.close(fig6)
+                    
+                    # Additional visualization using DEMATEL solver's drawCurve if available
+                    try:
+                        st.subheader("DEMATEL Solver Visualization")
+                        fig = solver.drawCurve()
+                        if fig is not None:
+                            st.pyplot(fig, clear_figure=False)
+                    except Exception as e:
+                        st.info(f"Solver visualization not available: {str(e)}")
 
         except Exception as e:
             st.error(f"Error processing file: {str(e)}")
             st.info("Please ensure your CSV file is properly formatted with space delimiters.")
 
     # Footer
-    st.markdown("---")
-    st.markdown("*DEMATEL: Decision Making Trial and Evaluation Laboratory*")
+    # st.markdown("---")
 
 
 def round_matrix_values(matrix: np.ndarray, decimals: int = 3) -> np.ndarray:

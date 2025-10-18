@@ -4,7 +4,7 @@ import datetime
 from io import BytesIO
 from fdm_tfn import (fdm_form)
 from dematel import (dematel_form)
-from hoq_integration import (hoq_dematel_form)
+from hoq import (hoq_form)
 
 
 def main():
@@ -47,13 +47,17 @@ def main():
         unsafe_allow_html=True
     )
 
-    fdmTab, dematelTab, hoqDematelTab = st.tabs(["Fuzzy Delphi TFN", "DEMATEL Analysis", "HOQ Analysis"])
+    fdmTab, dematelTab, hoqTab = st.tabs(["Fuzzy Delphi TFN", "DEMATEL Analysis", "HOQ Analysis"])
     with fdmTab:
         fdm_form()
     with dematelTab:
         dematel_form()
-    with hoqDematelTab:
-        hoq_dematel_form()
+    with hoqTab:
+        hoq_form()
+
+    st.markdown("---")
+    st.markdown("Built with ❤️")
+    st.markdown("Visit my blog [pararang.com](https://bit.ly/uuDmUO5iqO5i9t) for more insights")
             
 if __name__ == "__main__":
     main()

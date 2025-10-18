@@ -191,7 +191,7 @@ class HOQIntegrator:
             }
 
 
-def hoq_dematel_form():
+def hoq_form():
     """Main form for HOQ and HOQ-DEMATEL integrated analysis."""
     st.title("HOQ Analysis")
     st.markdown("""
@@ -511,8 +511,7 @@ def hoq_dematel_form():
                             st.pyplot(fig2, clear_figure=False)
     
     # Footer
-    st.markdown("---")
-    st.markdown("*HOQ-DEMATEL: Integrating House of Quality with DEMATEL analysis*")
+    # st.markdown("---")
 
 
 def demonstrate_hoq_dematel_integration():
