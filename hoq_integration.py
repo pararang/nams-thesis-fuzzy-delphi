@@ -192,25 +192,30 @@ class HOQIntegrator:
 
 
 def hoq_dematel_form():
-    """Main form for HOQ-DEMATEL integrated analysis."""
-    st.title("HOQ-DEMATEL Integrated Analysis")
+    """Main form for HOQ and HOQ-DEMATEL integrated analysis."""
+    st.title("HOQ Analysis")
     st.markdown("""
-    This tool integrates DEMATEL method (for identifying causal relationships) 
-    with House of Quality (for prioritizing customer requirements against technical characteristics).
+    This tool provides two analysis options:
+    1. Standalone House of Quality (HOQ) analysis
+    2. Integrated HOQ-DEMATEL analysis that combines causal relationships with quality planning
     """)
     
-    # Tabs for different aspects of the analysis
-    hoq_tab, dematel_tab, integration_tab = st.tabs(["House of Quality", "DEMATEL", "Integration"])
+    # Selection for analysis type
+    analysis_type = st.radio(
+        "Select Analysis Type",
+        ["Standalone HOQ", "HOQ with DEMATEL Integration"],
+        index=0
+    )
     
-    with hoq_tab:
-        st.header("House of Quality Input")
+    if analysis_type == "Standalone HOQ":
+        st.header("Standalone House of Quality Analysis")
         
         # Customer Requirements Input
         st.subheader("Customer Requirements")
         cr_count = st.number_input("Number of Customer Requirements", min_value=1, max_value=20, value=4, key='cr_count')
         customer_requirements = []
         for i in range(int(cr_count)):
-            req = st.text_input(f"Customer Requirement {i+1}", value=f"CR{i+1}", key=f'cr_{i}')
+            req = st.text_input(f"Customer Requirement {i+1}", value=f"CR{i+1}", key=f'cr_{i}_standalone')
             customer_requirements.append(req)
         
         # Technical Characteristics Input
@@ -218,7 +223,7 @@ def hoq_dematel_form():
         tc_count = st.number_input("Number of Technical Characteristics", min_value=1, max_value=20, value=4, key='tc_count')
         technical_characteristics = []
         for i in range(int(tc_count)):
-            tc = st.text_input(f"Technical Characteristic {i+1}", value=f"TC{i+1}", key=f'tc_{i}')
+            tc = st.text_input(f"Technical Characteristic {i+1}", value=f"TC{i+1}", key=f'tc_{i}_standalone')
             technical_characteristics.append(tc)
         
         # Relationship Matrix Input
@@ -235,7 +240,7 @@ def hoq_dematel_form():
                     max_value=9.0,
                     value=0.0,
                     step=0.5,
-                    key=f'rel_{i}_{j}'
+                    key=f'rel_{i}_{j}_standalone'
                 )
         
         # Customer Importance Input
@@ -248,153 +253,262 @@ def hoq_dematel_form():
                 max_value=10.0,
                 value=1.0,
                 step=0.1,
-                key=f'cr_imp_{i}'
+                key=f'cr_imp_{i}_standalone'
             )
-    
-    with dematel_tab:
-        st.header("DEMATEL Input")
         
-        # DEMATEL matrix input
-        st.subheader("Direct Relation Matrix for DEMATEL")
-        dematel_elements = st.selectbox(
-            "Which elements to analyze with DEMATEL?",
-            ["Customer Requirements", "Technical Characteristics", "Custom Factors"],
-            key='dematel_elements'
-        )
+        # Technical Correlation Matrix (Optional)
+        st.subheader("Technical Correlation Matrix (Optional)")
+        st.markdown("Define correlation between technical characteristics (0-9 scale):")
+        add_correlation = st.checkbox("Add technical correlation matrix", value=False)
         
-        if dematel_elements == "Customer Requirements":
-            dematel_factors = customer_requirements
-        elif dematel_elements == "Technical Characteristics":
-            dematel_factors = technical_characteristics
-        else:
-            factor_count = st.number_input("Number of DEMATEL Factors", min_value=1, max_value=20, value=4, key='dematel_factor_count')
-            dematel_factors = []
-            for i in range(int(factor_count)):
-                factor = st.text_input(f"DEMATEL Factor {i+1}", value=f"Factor{i+1}", key=f'dem_factor_{i}')
-                dematel_factors.append(factor)
+        technical_correlation = None
+        if add_correlation:
+            technical_correlation = np.zeros((int(tc_count), int(tc_count)))
+            for i, tc_row in enumerate(technical_characteristics):
+                cols = st.columns(len(technical_characteristics))
+                for j, tc_col in enumerate(technical_characteristics):
+                    if i == j:
+                        # Diagonal is always 1 (perfect correlation with itself)
+                        technical_correlation[i][j] = 1.0
+                    else:
+                        technical_correlation[i][j] = cols[j].number_input(
+                            f"{tc_row} ↔ {tc_col}",
+                            min_value=0.0,
+                            max_value=9.0,
+                            value=0.0,
+                            step=0.5,
+                            key=f'corr_{i}_{j}_standalone'
+                        )
         
-        # Create DEMATEL matrix
-        dematel_matrix = np.zeros((len(dematel_factors), len(dematel_factors)))
-        st.markdown(f"Define the direct relationship matrix for {len(dematel_factors)} factors:")
-        
-        for i, factor_row in enumerate(dematel_factors):
-            cols = st.columns(len(dematel_factors))
-            for j, factor_col in enumerate(dematel_factors):
-                dematel_matrix[i][j] = cols[j].number_input(
-                    f"{factor_row} → {factor_col}",
-                    min_value=0.0,
-                    max_value=4.0,
-                    value=0.0,
-                    step=0.1,
-                    key=f'dem_mat_{i}_{j}'
-                )
-    
-    with integration_tab:
-        st.header("Integration Analysis")
-        
-        if st.button("Perform Integrated HOQ-DEMATEL Analysis", type="primary"):
-            with st.spinner("Performing integrated analysis..."):
+        # Run standalone HOQ analysis
+        if st.button("Perform Standalone HOQ Analysis", type="primary"):
+            with st.spinner("Performing HOQ analysis..."):
                 integrator = HOQIntegrator()
                 
-                # Perform DEMATEL analysis
-                dematel_results = integrator.perform_dematel_analysis(
-                    dematel_matrix, dematel_factors
-                )
-                
-                # Perform integrated analysis
-                integration_results = integrator.integrate_dematel_hoq(
-                    dematel_results,
+                # Create HOQ matrix
+                hoq_matrix = integrator.create_hoq_matrix(
                     customer_requirements,
                     technical_characteristics,
                     relationship_matrix,
-                    customer_importance
+                    customer_importance,
+                    technical_correlation
                 )
                 
                 # Display results
-                st.subheader("DEMATEL Results")
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.write("**Prominence Values (D+R):**")
-                    prominence_df = pd.DataFrame({
-                        'Factor': dematel_factors,
-                        'D+R (Prominence)': dematel_results['relation_plus']
-                    })
-                    st.dataframe(prominence_df)
-                
-                with col2:
-                    st.write("**Net Influence (D-R):**")
-                    net_influence_df = pd.DataFrame({
-                        'Factor': dematel_factors,
-                        'D-R (Net Influence)': dematel_results['relation_minus']
-                    })
-                    st.dataframe(net_influence_df)
-                
                 st.subheader("House of Quality Matrix")
-                if 'hoq_matrix' in integration_results and integration_results['hoq_matrix'] is not None:
-                    st.dataframe(integration_results['hoq_matrix'])
-                else:
-                    st.error("HOQ matrix could not be generated. Please check your inputs.")
+                st.dataframe(hoq_matrix)
                 
-                # Visualization
-                st.subheader("Causal Diagram (DEMATEL Results)")
-                fig, ax = plt.subplots(figsize=(10, 8))
-                
-                # Plot prominence vs net influence
-                x = dematel_results['relation_minus']  # D-R
-                y = dematel_results['relation_plus']   # D+R
-                
-                ax.scatter(x, y, alpha=0.7)
-                
-                # Add labels
-                for i, txt in enumerate(dematel_factors):
-                    ax.annotate(txt, (x[i], y[i]), fontsize=9)
-                
-                ax.set_xlabel('D-R (Net Influence)')
-                ax.set_ylabel('D+R (Prominence)')
-                ax.set_title('DEMATEL Causal Diagram')
+                # Technical Importance Chart
+                st.subheader("Technical Importance")
+                fig, ax = plt.subplots(figsize=(10, 6))
+                tech_importance = hoq_matrix['Technical Importance']
+                ax.bar(technical_characteristics, tech_importance)
+                ax.set_xlabel('Technical Characteristics')
+                ax.set_ylabel('Importance Score')
+                ax.set_title('Technical Importance based on HOQ')
+                plt.xticks(rotation=45, ha='right')
                 ax.grid(True, linestyle='--', alpha=0.7)
-                
-                # Draw quadrant lines
-                ax.axhline(y=np.mean(y), color='r', linestyle='--', alpha=0.5)
-                ax.axvline(x=np.mean(x), color='r', linestyle='--', alpha=0.5)
                 
                 st.pyplot(fig, clear_figure=False)
                 
-                # Technical Importance Chart
-                st.subheader("Technical Importance Comparison")
-                if 'adjusted_technical_importance' in integration_results:
-                    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    else:  # HOQ with DEMATEL Integration
+        # Tabs for different aspects of the analysis
+        hoq_tab, dematel_tab, integration_tab = st.tabs(["HOQ Input", "DEMATEL Input", "Integration"])
+        
+        with hoq_tab:
+            st.header("House of Quality Input")
+            
+            # Customer Requirements Input
+            st.subheader("Customer Requirements")
+            cr_count = st.number_input("Number of Customer Requirements", min_value=1, max_value=20, value=4, key='cr_count_integrated')
+            customer_requirements = []
+            for i in range(int(cr_count)):
+                req = st.text_input(f"Customer Requirement {i+1}", value=f"CR{i+1}", key=f'cr_{i}_integrated')
+                customer_requirements.append(req)
+            
+            # Technical Characteristics Input
+            st.subheader("Technical Characteristics")
+            tc_count = st.number_input("Number of Technical Characteristics", min_value=1, max_value=20, value=4, key='tc_count_integrated')
+            technical_characteristics = []
+            for i in range(int(tc_count)):
+                tc = st.text_input(f"Technical Characteristic {i+1}", value=f"TC{i+1}", key=f'tc_{i}_integrated')
+                technical_characteristics.append(tc)
+            
+            # Relationship Matrix Input
+            st.subheader("Relationship Matrix (Customer Requirements vs Technical Characteristics)")
+            st.markdown("Define the relationship strength between each CR and TC (0-9 scale):")
+            
+            relationship_matrix = np.zeros((int(cr_count), int(tc_count)))
+            for i, cr in enumerate(customer_requirements):
+                cols = st.columns(len(technical_characteristics))
+                for j, tc in enumerate(technical_characteristics):
+                    relationship_matrix[i][j] = cols[j].number_input(
+                        f"{cr} vs {tc}",
+                        min_value=0.0,
+                        max_value=9.0,
+                        value=0.0,
+                        step=0.5,
+                        key=f'rel_{i}_{j}_integrated'
+                    )
+            
+            # Customer Importance Input
+            st.subheader("Customer Requirement Importances")
+            customer_importance = np.zeros(int(cr_count))
+            for i, cr in enumerate(customer_requirements):
+                customer_importance[i] = st.number_input(
+                    f"Importance of {cr}",
+                    min_value=0.0,
+                    max_value=10.0,
+                    value=1.0,
+                    step=0.1,
+                    key=f'cr_imp_{i}_integrated'
+                )
+        
+        with dematel_tab:
+            st.header("DEMATEL Input")
+            
+            # DEMATEL matrix input
+            st.subheader("Direct Relation Matrix for DEMATEL")
+            dematel_elements = st.selectbox(
+                "Which elements to analyze with DEMATEL?",
+                ["Customer Requirements", "Technical Characteristics", "Custom Factors"],
+                key='dematel_elements'
+            )
+            
+            if dematel_elements == "Customer Requirements":
+                dematel_factors = customer_requirements
+            elif dematel_elements == "Technical Characteristics":
+                dematel_factors = technical_characteristics
+            else:
+                factor_count = st.number_input("Number of DEMATEL Factors", min_value=1, max_value=20, value=4, key='dematel_factor_count')
+                dematel_factors = []
+                for i in range(int(factor_count)):
+                    factor = st.text_input(f"DEMATEL Factor {i+1}", value=f"Factor{i+1}", key=f'dem_factor_{i}')
+                    dematel_factors.append(factor)
+            
+            # Create DEMATEL matrix
+            dematel_matrix = np.zeros((len(dematel_factors), len(dematel_factors)))
+            st.markdown(f"Define the direct relationship matrix for {len(dematel_factors)} factors:")
+            
+            for i, factor_row in enumerate(dematel_factors):
+                cols = st.columns(len(dematel_factors))
+                for j, factor_col in enumerate(dematel_factors):
+                    dematel_matrix[i][j] = cols[j].number_input(
+                        f"{factor_row} → {factor_col}",
+                        min_value=0.0,
+                        max_value=4.0,
+                        value=0.0,
+                        step=0.1,
+                        key=f'dem_mat_{i}_{j}'
+                    )
+        
+        with integration_tab:
+            st.header("Integration Analysis")
+            
+            if st.button("Perform Integrated HOQ-DEMATEL Analysis", type="primary"):
+                with st.spinner("Performing integrated analysis..."):
+                    integrator = HOQIntegrator()
                     
-                    x_pos = np.arange(len(technical_characteristics))
-                    width = 0.35
+                    # Perform DEMATEL analysis
+                    dematel_results = integrator.perform_dematel_analysis(
+                        dematel_matrix, dematel_factors
+                    )
                     
-                    base_importance = integration_results['hoq_matrix']['Technical Importance']
-                    adjusted_importance = integration_results['adjusted_technical_importance']
+                    # Perform integrated analysis
+                    integration_results = integrator.integrate_dematel_hoq(
+                        dematel_results,
+                        customer_requirements,
+                        technical_characteristics,
+                        relationship_matrix,
+                        customer_importance
+                    )
                     
-                    ax2.bar(x_pos - width/2, base_importance, width, label='Baseline', alpha=0.8)
-                    ax2.bar(x_pos + width/2, adjusted_importance, width, label='DEMATEL Adjusted', alpha=0.8)
+                    # Display results
+                    st.subheader("DEMATEL Results")
+                    col1, col2 = st.columns(2)
                     
-                    ax2.set_xlabel('Technical Characteristics')
-                    ax2.set_ylabel('Importance Score')
-                    ax2.set_title('Comparison of Technical Importance: Baseline vs DEMATEL Adjusted')
-                    ax2.set_xticks(x_pos)
-                    ax2.set_xticklabels(technical_characteristics, rotation=45, ha='right')
-                    ax2.legend()
-                    ax2.grid(True, linestyle='--', alpha=0.7)
+                    with col1:
+                        st.write("**Prominence Values (D+R):**")
+                        prominence_df = pd.DataFrame({
+                            'Factor': dematel_factors,
+                            'D+R (Prominence)': dematel_results['relation_plus']
+                        })
+                        st.dataframe(prominence_df)
                     
-                    st.pyplot(fig2, clear_figure=False)
-                else:
-                    fig2, ax2 = plt.subplots(figsize=(10, 6))
-                    tech_importance = integration_results['hoq_matrix']['Technical Importance']
-                    ax2.bar(technical_characteristics, tech_importance)
-                    ax2.set_xlabel('Technical Characteristics')
-                    ax2.set_ylabel('Importance Score')
-                    ax2.set_title('Technical Importance based on HOQ')
-                    plt.xticks(rotation=45, ha='right')
-                    ax2.grid(True, linestyle='--', alpha=0.7)
+                    with col2:
+                        st.write("**Net Influence (D-R):**")
+                        net_influence_df = pd.DataFrame({
+                            'Factor': dematel_factors,
+                            'D-R (Net Influence)': dematel_results['relation_minus']
+                        })
+                        st.dataframe(net_influence_df)
                     
-                    st.pyplot(fig2, clear_figure=False)
+                    st.subheader("House of Quality Matrix")
+                    if 'hoq_matrix' in integration_results and integration_results['hoq_matrix'] is not None:
+                        st.dataframe(integration_results['hoq_matrix'])
+                    else:
+                        st.error("HOQ matrix could not be generated. Please check your inputs.")
+                    
+                    # Visualization
+                    st.subheader("Causal Diagram (DEMATEL Results)")
+                    fig, ax = plt.subplots(figsize=(10, 8))
+                    
+                    # Plot prominence vs net influence
+                    x = dematel_results['relation_minus']  # D-R
+                    y = dematel_results['relation_plus']   # D+R
+                    
+                    ax.scatter(x, y, alpha=0.7)
+                    
+                    # Add labels
+                    for i, txt in enumerate(dematel_factors):
+                        ax.annotate(txt, (x[i], y[i]), fontsize=9)
+                    
+                    ax.set_xlabel('D-R (Net Influence)')
+                    ax.set_ylabel('D+R (Prominence)')
+                    ax.set_title('DEMATEL Causal Diagram')
+                    ax.grid(True, linestyle='--', alpha=0.7)
+                    
+                    # Draw quadrant lines
+                    ax.axhline(y=np.mean(y), color='r', linestyle='--', alpha=0.5)
+                    ax.axvline(x=np.mean(x), color='r', linestyle='--', alpha=0.5)
+                    
+                    st.pyplot(fig, clear_figure=False)
+                    
+                    # Technical Importance Chart
+                    st.subheader("Technical Importance Comparison")
+                    if 'adjusted_technical_importance' in integration_results:
+                        fig2, ax2 = plt.subplots(figsize=(10, 6))
+                        
+                        x_pos = np.arange(len(technical_characteristics))
+                        width = 0.35
+                        
+                        base_importance = integration_results['hoq_matrix']['Technical Importance']
+                        adjusted_importance = integration_results['adjusted_technical_importance']
+                        
+                        ax2.bar(x_pos - width/2, base_importance, width, label='Baseline', alpha=0.8)
+                        ax2.bar(x_pos + width/2, adjusted_importance, width, label='DEMATEL Adjusted', alpha=0.8)
+                        
+                        ax2.set_xlabel('Technical Characteristics')
+                        ax2.set_ylabel('Importance Score')
+                        ax2.set_title('Comparison of Technical Importance: Baseline vs DEMATEL Adjusted')
+                        ax2.set_xticks(x_pos)
+                        ax2.set_xticklabels(technical_characteristics, rotation=45, ha='right')
+                        ax2.legend()
+                        ax2.grid(True, linestyle='--', alpha=0.7)
+                        
+                        st.pyplot(fig2, clear_figure=False)
+                    else:
+                        if 'hoq_matrix' in integration_results and integration_results['hoq_matrix'] is not None:
+                            fig2, ax2 = plt.subplots(figsize=(10, 6))
+                            tech_importance = integration_results['hoq_matrix']['Technical Importance']
+                            ax2.bar(technical_characteristics, tech_importance)
+                            ax2.set_xlabel('Technical Characteristics')
+                            ax2.set_ylabel('Importance Score')
+                            ax2.set_title('Technical Importance based on HOQ')
+                            plt.xticks(rotation=45, ha='right')
+                            ax2.grid(True, linestyle='--', alpha=0.7)
+                            
+                            st.pyplot(fig2, clear_figure=False)
     
     # Footer
     st.markdown("---")

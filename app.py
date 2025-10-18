@@ -47,7 +47,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    fdmTab, dematelTab, hoqDematelTab = st.tabs(["Fuzzy Delphi TFN", "DEMATEL Analysis", "HOQ-DEMATEL Integration"])
+    fdmTab, dematelTab, hoqDematelTab = st.tabs(["Fuzzy Delphi TFN", "DEMATEL Analysis", "HOQ Analysis"])
     with fdmTab:
         fdm_form()
     with dematelTab:
